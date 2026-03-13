@@ -1,0 +1,38 @@
+package app.linger.data.repository.encounter
+
+import app.linger.core.util.DispatcherProvider
+import app.linger.data.local.dao.EncounterDao
+import app.linger.data.mapper.toDomain
+import app.linger.data.mapper.toEntity
+import app.linger.data.remote.api.HistoryApi
+import app.linger.domain.model.Encounter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+
+class EncounterRepositoryImpl @Inject constructor(
+    private val encounterDao: EncounterDao,
+    private val historyApi: HistoryApi,
+    private val dispatchers: DispatcherProvider
+) : EncounterRepository {
+    override fun observeAll(): Flow<List<Encounter>> =
+        encounterDao.observeAll().map { list -> list.map { it.toDomain() } }
+
+    override fun observeRemoteFriends(): Flow<List<Encounter>> =
+        encounterDao.observeRemoteFriends().map { list -> list.map { it.toDomain() } }
+
+    override suspend fun upsertEncounters(encounters: List<Encounter>) {
+        withContext(dispatchers.io) {
+            encounterDao.upsertAll(encounters.map { it.toEntity() })
+        }
+    }
+
+    override suspend fun syncFromRemote() {
+        withContext(dispatchers.io) {
+            val dtos = historyApi.getEncounters()
+            val entities = dtos.map { it.toEntity() }
+            encounterDao.upsertAll(entities)
+        }
+    }
+}

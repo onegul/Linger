@@ -1,0 +1,69 @@
+package app.linger.data.repository.chat
+
+import app.linger.core.util.DispatcherProvider
+import app.linger.core.util.Result
+import app.linger.data.local.dao.ChatDao
+import app.linger.data.mapper.toDomain
+import app.linger.data.mapper.toEntity
+import app.linger.data.remote.api.ChatApi
+import app.linger.data.remote.api.CreateThreadBody
+import app.linger.data.remote.api.SendMessageBody
+import app.linger.domain.model.ChatMessage
+import app.linger.domain.model.ChatMode
+import app.linger.domain.model.ChatThread
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+
+class ChatRepositoryImpl @Inject constructor(
+    private val chatDao: ChatDao,
+    private val chatApi: ChatApi,
+    private val dispatchers: DispatcherProvider
+) : ChatRepository {
+    override fun observeThreads(): Flow<List<ChatThread>> =
+        chatDao.observeThreads().map { list -> list.map { it.toDomain() } }
+
+    override fun observeMessages(threadId: String): Flow<List<ChatMessage>> =
+        chatDao.observeMessages(threadId).map { list -> list.map { it.toDomain() } }
+
+    override suspend fun refreshThreads() {
+        withContext(dispatchers.io) {
+            val remoteThreads = chatApi.getThreads()
+            val entities = remoteThreads.map { it.toEntity() }
+            chatDao.upsertThreads(entities)
+        }
+    }
+
+    override suspend fun refreshMessages(threadId: String) {
+        withContext(dispatchers.io) {
+            val remoteMessages = chatApi.getMessages(threadId)
+            val entities = remoteMessages.map { it.toEntity() }
+            chatDao.upsertMessages(entities)
+        }
+    }
+
+    override suspend fun sendMessage(threadId: String, context: String): Result<ChatMessage> =
+        withContext(dispatchers.io) {
+            try {
+                val dto = chatApi.sendMessage(threadId, SendMessageBody(context))
+                val entity = dto.toEntity()
+                chatDao.upsertMessages(listOf(entity))
+                Result.Success(entity.toDomain())
+            } catch (t: Throwable) {
+                Result.Error(t)
+            }
+        }
+
+    override suspend fun createThread(peerId: String, mode: ChatMode): Result<ChatThread> =
+        withContext(dispatchers.io) {
+            try {
+                val dto = chatApi.createThread(CreateThreadBody(peerId, mode.name.lowercase()))
+                val entity = dto.toEntity()
+                chatDao.upsertThreads(listOf(entity))
+                Result.Success(entity.toDomain())
+            } catch (t: Throwable) {
+                Result.Error(t)
+            }
+        }
+}
