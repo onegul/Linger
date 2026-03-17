@@ -5,9 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import app.linger.ui.navigation.LingerNavGraph
 import app.linger.ui.theme.LingerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
 fun LingerAppRoot() {
     LingerTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            Text(text = "Linger - Phase 0")
+            LingerNavGraph()
         }
     }
 }
