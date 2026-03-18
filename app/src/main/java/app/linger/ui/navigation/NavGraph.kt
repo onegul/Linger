@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.linger.ui.lounge.LoungeScreen
+import app.linger.ui.settings.SettingsScreen
 
 @Composable
 fun LingerNavGraph() {
@@ -21,7 +22,7 @@ fun LingerNavGraph() {
 
         }
         composable(Routes.SETTINGS) {
-
+            SettingsScreen()
         }
     }
 }
