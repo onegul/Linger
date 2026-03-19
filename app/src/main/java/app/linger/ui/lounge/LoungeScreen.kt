@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun LoungeScreen(
+    onOpenChat: (String) -> Unit,
     viewModel: LoungeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -21,7 +22,8 @@ fun LoungeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)) {
+            .padding(16.dp)
+    ) {
         Text(
             text = "The Lounge",
             style = MaterialTheme.typography.headlineMedium
@@ -31,6 +33,15 @@ fun LoungeScreen(
             text = if (state.isScanning) "Scanning nearby..." else "Not scanning",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
+        )
+
+        LoungeRadarList(
+            items = state.items,
+            onGlance = { peerId ->
+                viewModel.onGlance(peerId) { threadId ->
+                    onOpenChat(threadId)
+                }
+            }
         )
     }
 }

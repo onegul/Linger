@@ -2,13 +2,16 @@ package app.linger.ui.lounge
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.linger.core.util.Result
 import app.linger.domain.model.Profile
 import app.linger.domain.usecase.ScanNearbyUseCase
+import app.linger.domain.usecase.StartLocalChatUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,6 +19,9 @@ class LoungeViewModel @Inject constructor(
 ) : ViewModel() {
     @Inject
     lateinit var scanNearbyUseCase: ScanNearbyUseCase
+
+    @Inject
+    lateinit var startLocalChatUseCase: StartLocalChatUseCase
 
     private val selfProfile = Profile(
         id = "self",
@@ -43,4 +49,14 @@ class LoungeViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = LoungeUiState(isScanning = false, items = emptyList())
             )
+
+    fun onGlance(peerId: String, onThreadReady: (String) -> Unit) {
+        viewModelScope.launch {
+            when (val result = startLocalChatUseCase(peerId)) {
+                is Result.Success -> onThreadReady(result.value.id)
+                is Result.Error,
+                Result.Loading -> Unit      // TODO: error handling later
+            }
+        }
+    }
 }

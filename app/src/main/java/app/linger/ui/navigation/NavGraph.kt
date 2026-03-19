@@ -20,7 +20,11 @@ fun LingerNavGraph() {
         startDestination = Routes.LOUNGE
     ) {
         composable(Routes.LOUNGE) {
-            LoungeScreen()
+            LoungeScreen(
+                onOpenChat = { threadId ->
+                    navController.navigate("${Routes.CHAT}/$threadId")
+                }
+            )
         }
         composable(Routes.CHAT_LIST) {
             ChatListScreen(
