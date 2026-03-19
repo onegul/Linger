@@ -8,19 +8,49 @@ import app.linger.data.mapper.toEntity
 import app.linger.data.remote.api.ChatApi
 import app.linger.data.remote.api.CreateThreadBody
 import app.linger.data.remote.api.SendMessageBody
+import app.linger.data.remote.socket.ChatSocketClient
+import app.linger.data.remote.socket.ChatSocketEvent
 import app.linger.domain.model.ChatMessage
 import app.linger.domain.model.ChatMode
 import app.linger.domain.model.ChatThread
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ChatRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao,
     private val chatApi: ChatApi,
+    private val socketClient: ChatSocketClient,
     private val dispatchers: DispatcherProvider
 ) : ChatRepository {
+    init {
+        socketClient.connect()
+        observeSocketEvents()
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun observeSocketEvents() {
+        GlobalScope.launch(dispatchers.io) {
+            socketClient.events.collect { event ->
+                when (event) {
+                    is ChatSocketEvent.MessageReceived -> {
+                        val entity = event.message.toEntity()
+                        chatDao.upsertMessages(listOf(entity))
+                    }
+
+                    is ChatSocketEvent.ThreadUpdated -> {
+                        val entity = event.thread.toEntity()
+                        chatDao.upsertThreads(listOf(entity))
+                    }
+                }
+            }
+        }
+    }
+
     override fun observeThreads(): Flow<List<ChatThread>> =
         chatDao.observeThreads().map { list -> list.map { it.toDomain() } }
 
