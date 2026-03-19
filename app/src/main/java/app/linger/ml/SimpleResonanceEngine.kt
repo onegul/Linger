@@ -19,11 +19,11 @@ class SimpleResonanceEngine : ResonanceEngine {
         // Simple weighted sum; ll be tuned later.
         val value =
             0.30 * tagScore +
-                    0.20 + readingScore +
-                    0.20 + activitiesScore +
-                    0.15 + musicScore +
-                    0.10 + foodsScore +
-                    0.05 + videosScore
+                    0.20 * readingScore +
+                    0.20 * activitiesScore +
+                    0.15 * musicScore +
+                    0.10 * foodsScore +
+                    0.05 * videosScore
 
         val level = when {
             value >= 0.7 -> ResonanceLevel.HIGH

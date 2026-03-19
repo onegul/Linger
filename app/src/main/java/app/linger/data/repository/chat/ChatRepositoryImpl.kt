@@ -13,8 +13,8 @@ import app.linger.data.remote.socket.ChatSocketEvent
 import app.linger.domain.model.ChatMessage
 import app.linger.domain.model.ChatMode
 import app.linger.domain.model.ChatThread
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -27,24 +27,19 @@ class ChatRepositoryImpl @Inject constructor(
     private val socketClient: ChatSocketClient,
     private val dispatchers: DispatcherProvider
 ) : ChatRepository {
+    private val scope = CoroutineScope(SupervisorJob() + dispatchers.io)
+
     init {
         socketClient.connect()
-        observeSocketEvents()
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun observeSocketEvents() {
-        GlobalScope.launch(dispatchers.io) {
+        scope.launch {
             socketClient.events.collect { event ->
                 when (event) {
                     is ChatSocketEvent.MessageReceived -> {
-                        val entity = event.message.toEntity()
-                        chatDao.upsertMessages(listOf(entity))
+                        chatDao.upsertMessages(listOf(event.message.toEntity()))
                     }
 
                     is ChatSocketEvent.ThreadUpdated -> {
-                        val entity = event.thread.toEntity()
-                        chatDao.upsertThreads(listOf(entity))
+                        chatDao.upsertThreads(listOf(event.thread.toEntity()))
                     }
                 }
             }
