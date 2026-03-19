@@ -16,13 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoungeViewModel @Inject constructor(
+    scanNearbyUseCase: ScanNearbyUseCase,
+    private val startLocalChatUseCase: StartLocalChatUseCase
 ) : ViewModel() {
-    @Inject
-    lateinit var scanNearbyUseCase: ScanNearbyUseCase
-
-    @Inject
-    lateinit var startLocalChatUseCase: StartLocalChatUseCase
-
     private val selfProfile = Profile(
         id = "self",
         alias = "You",
