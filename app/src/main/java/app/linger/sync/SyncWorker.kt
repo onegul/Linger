@@ -9,6 +9,7 @@ import app.linger.data.repository.encounter.EncounterRepository
 import app.linger.data.repository.profile.ProfileRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
 
 @HiltWorker
 class SyncWorker @AssistedInject constructor(
@@ -23,7 +24,15 @@ class SyncWorker @AssistedInject constructor(
             // TODO: "me" will be replaced with authenticated id when auth is added
             profileRepository.refreshProfile(id = "me")
             encounterRepository.syncFromRemote()
+
             chatRepository.refreshThreads()
+
+            // Refresh messages for each known thread so chat is populated offline-first
+            val threads = chatRepository.observeThreads().first()
+            threads.forEach { thread ->
+                chatRepository.refreshMessages(thread.id)
+            }
+
             Result.success()
         } catch (t: Throwable) {
             Result.retry()
