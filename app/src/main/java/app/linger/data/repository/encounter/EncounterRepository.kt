@@ -11,4 +11,8 @@ interface EncounterRepository {
     suspend fun upsertEncounters(encounters: List<Encounter>)
 
     suspend fun syncFromRemote()
+
+    suspend fun markLocalChatStarted(otherId: String, started: Boolean)
+
+    suspend fun markRemoteFriend(otherId: String, remote: Boolean)
 }

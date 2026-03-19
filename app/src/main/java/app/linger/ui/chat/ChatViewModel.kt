@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.linger.core.util.Result
 import app.linger.domain.model.ChatMode
+import app.linger.domain.usecase.KeepInTouchUseCase
 import app.linger.domain.usecase.ObserveChatMessagesUseCase
 import app.linger.domain.usecase.ObserveChatThreadsUseCase
 import app.linger.domain.usecase.RefreshChatMessagesUseCase
@@ -24,7 +25,8 @@ class ChatViewModel @Inject constructor(
     observeChatMessages: ObserveChatMessagesUseCase,
     observeChatThreads: ObserveChatThreadsUseCase,
     private val refreshChatMessages: RefreshChatMessagesUseCase,
-    private val sendMessage: SendMessagesUseCase
+    private val sendMessage: SendMessagesUseCase,
+    private val keepInTouchUseCase: KeepInTouchUseCase
 ) : ViewModel() {
     private val threadId: String = checkNotNull(savedStateHandle[Routes.CHAT_THREAD_ID])
 
@@ -63,6 +65,16 @@ class ChatViewModel @Inject constructor(
             when (sendMessage(threadId, text.trim())) {
                 is Result.Success -> Unit
                 is Result.Error -> Unit     // TODO: expose snackbar or toast
+                Result.Loading -> Unit
+            }
+        }
+    }
+
+    fun keepInTouch() {
+        viewModelScope.launch {
+            when (keepInTouchUseCase(threadId)) {
+                is Result.Success -> Unit
+                is Result.Error -> Unit     // TODO: expose snackbar or toast later
                 Result.Loading -> Unit
             }
         }

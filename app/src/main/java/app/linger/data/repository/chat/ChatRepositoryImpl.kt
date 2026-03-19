@@ -66,4 +66,31 @@ class ChatRepositoryImpl @Inject constructor(
                 Result.Error(t)
             }
         }
+
+    override suspend fun setThreadMode(threadId: String, mode: ChatMode): Result<ChatThread> =
+        withContext(dispatchers.io) {
+            try {
+                val now = System.currentTimeMillis()
+                val updatedRows = chatDao.updateThreadMode(
+                    threadId = threadId,
+                    mode = mode,
+                    lastUpdatedAtMillis = now
+                )
+
+                if (updatedRows == 0) {
+                    return@withContext Result.Error(
+                        throwable = IllegalStateException("Thread not found: $threadId")
+                    )
+                }
+
+                val entity = chatDao.getThreadById(threadId)
+                    ?: return@withContext Result.Error(
+                        throwable = IllegalStateException("Thread not found after update: $threadId")
+                    )
+
+                Result.Success(entity.toDomain())
+            } catch (t: Throwable) {
+                Result.Error(t)
+            }
+        }
 }

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import app.linger.data.local.entity.ChatMessageEntity
 import app.linger.data.local.entity.ChatThreadEntity
+import app.linger.domain.model.ChatMode
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,4 +22,10 @@ interface ChatDao {
 
     @Query("SELECT * FROM chat_messages WHERE threadId = :threadId ORDER BY timestampMillis ASC")
     fun observeMessages(threadId: String): Flow<List<ChatMessageEntity>>
+
+    @Query("SELECT * FROM chat_threads WHERE id = :threadId LIMIT 1")
+    suspend fun getThreadById(threadId: String): ChatThreadEntity?
+
+    @Query("UPDATE chat_threads SET mode = :mode, lastUpdatedAtMillis = :lastUpdatedAtMillis WHERE id = :threadId")
+    suspend fun updateThreadMode(threadId: String, mode: ChatMode, lastUpdatedAtMillis: Long): Int
 }

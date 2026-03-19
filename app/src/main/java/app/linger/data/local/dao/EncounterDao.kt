@@ -17,4 +17,10 @@ interface EncounterDao {
 
     @Query("SELECT * FROM encounters WHERE isRemoteFriend = 1 ORDER BY lastSeenAt DESC")
     fun observeRemoteFriends(): Flow<List<EncounterEntity>>
+
+    @Query("UPDATE encounters SET wasLocalChatStarted = :started WHERE otherId = :otherId")
+    suspend fun setWasLocalChatStarted(otherId: String, started: Boolean): Int
+
+    @Query("UPDATE encounters SET isRemoteFriend = :remote WHERE otherId = :otherId")
+    suspend fun setIsRemoteFriend(otherId: String, remote: Boolean): Int
 }

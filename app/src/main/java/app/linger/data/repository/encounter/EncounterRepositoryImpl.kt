@@ -35,4 +35,16 @@ class EncounterRepositoryImpl @Inject constructor(
             encounterDao.upsertAll(entities)
         }
     }
+
+    override suspend fun markLocalChatStarted(otherId: String, started: Boolean) {
+        withContext(dispatchers.io) {
+            encounterDao.setWasLocalChatStarted(otherId, started)
+        }
+    }
+
+    override suspend fun markRemoteFriend(otherId: String, remote: Boolean) {
+        withContext(dispatchers.io) {
+            encounterDao.setIsRemoteFriend(otherId, remote)
+        }
+    }
 }

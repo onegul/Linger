@@ -1,7 +1,9 @@
 package app.linger.data.local
 
 import androidx.room.TypeConverter
+import app.linger.domain.model.ChatMode
 import app.linger.domain.model.Discoverability
+import app.linger.domain.model.EncounterType
 import app.linger.domain.model.MessageSender
 import app.linger.domain.model.MessageStatus
 import app.linger.domain.model.ResonanceLevel
@@ -45,4 +47,16 @@ class Converters {
 
     @TypeConverter
     fun toDiscoverability(name: String): Discoverability = enumValueOf(name)
+
+    @TypeConverter
+    fun fromChatMode(mode: ChatMode): String = mode.name
+
+    @TypeConverter
+    fun toChatMode(name: String): ChatMode = enumValueOf(name)
+
+    @TypeConverter
+    fun fromEncounterType(type: EncounterType): String = type.name
+
+    @TypeConverter
+    fun toEncounterType(name: String): EncounterType = enumValueOf(name)
 }

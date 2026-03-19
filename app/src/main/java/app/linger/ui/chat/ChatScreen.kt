@@ -61,6 +61,17 @@ fun ChatScreen(
             }
         }
 
+        if (state.mode == ChatMode.LOCAL) {
+            Button(
+                onClick = { viewModel.keepInTouch() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Text("Keep in Touch")
+            }
+        }
+
         LazyColumn(
             modifier = Modifier
                 .weight(1f)

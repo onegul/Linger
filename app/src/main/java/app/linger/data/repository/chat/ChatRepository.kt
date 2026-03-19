@@ -18,4 +18,6 @@ interface ChatRepository {
     suspend fun sendMessage(threadId: String, context: String): Result<ChatMessage>
 
     suspend fun createThread(peerId: String, mode: ChatMode): Result<ChatThread>
+
+    suspend fun setThreadMode(threadId: String, mode: ChatMode): Result<ChatThread>
 }
