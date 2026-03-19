@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import app.linger.ui.chat.ChatListScreen
 import app.linger.ui.chat.ChatScreen
+import app.linger.ui.history.EncounterHistoryScreen
 import app.linger.ui.lounge.LoungeScreen
 import app.linger.ui.settings.SettingsScreen
 
@@ -35,6 +36,13 @@ fun LingerNavGraph() {
         }
         composable(Routes.SETTINGS) {
             SettingsScreen()
+        }
+        composable(Routes.HISTORY) {
+            EncounterHistoryScreen(
+                onOpenChat = { threadId ->
+                    navController.navigate("${Routes.CHAT}/$threadId")
+                }
+            )
         }
         composable(
             route = "${Routes.CHAT}/{${Routes.CHAT_THREAD_ID}}",
