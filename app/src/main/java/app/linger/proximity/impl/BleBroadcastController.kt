@@ -11,15 +11,18 @@ import android.os.ParcelUuid
 import app.linger.domain.model.BroadcastSettings
 import app.linger.proximity.BroadcastController
 import app.linger.proximity.BroadcastState
+import app.linger.proximity.model.ProximityTargetType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 class BleBroadcastController(
     private val context: Context,
     private val ephemeralIdProvider: EphemeralIdProvider
 ) : BroadcastController {
+    private val serviceUuid =
+        UUID.fromString("0000FEED-0000-1000-8000-00805F9B34FB")   // placeholder UUID
+
     private val _state = MutableStateFlow(BroadcastState.OFF)
     override val state: Flow<BroadcastState> = _state
 
@@ -34,9 +37,21 @@ class BleBroadcastController(
     private var callback: AdvertiseCallback? = null
 
     override suspend fun enableBroadcasting(settings: BroadcastSettings) {
+        if (!settings.showLifeToPeople) {
+            disableBroadcasting()
+            return
+        }
+
+        val adapter = bluetoothAdapter ?: return
+        if (!adapter.isEnabled) return
+
+        val adv = advertiser ?: return
+
         val id = ephemeralIdProvider.currentEphemeralId()
-        val serviceUuid =
-            UUID.fromString("0000FEED-0000-1000-8000-00805F9B34FB")   // placeholder UUID
+        val payload = encodePayload(
+            type = ProximityTargetType.USER,
+            ephemeralId = id
+        )
 
         val advertiseSettings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -46,12 +61,12 @@ class BleBroadcastController(
 
         val data = AdvertiseData.Builder()
             .addServiceUuid(ParcelUuid(serviceUuid))
-            .addServiceData(ParcelUuid(serviceUuid), id.toByteArray(StandardCharsets.UTF_8))
+            .addServiceData(ParcelUuid(serviceUuid), payload)
             .setIncludeDeviceName(false)
             .build()
 
         callback = object : AdvertiseCallback() {}
-        advertiser?.startAdvertising(advertiseSettings, data, callback)
+        adv.startAdvertising(advertiseSettings, data, callback)
         _state.value = BroadcastState.ON
     }
 
