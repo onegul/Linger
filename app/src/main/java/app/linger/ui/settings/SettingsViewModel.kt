@@ -6,6 +6,7 @@ import app.linger.domain.model.BroadcastSettings
 import app.linger.domain.model.Discoverability
 import app.linger.domain.usecase.ObserveBroadcastSettingsUseCase
 import app.linger.domain.usecase.UpdateBroadcastSettingsUseCase
+import app.linger.proximity.BroadcastController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     observeBroadcastSettings: ObserveBroadcastSettingsUseCase,
     private val updateBroadcastSettings: UpdateBroadcastSettingsUseCase,
+    private val broadcastController: BroadcastController
 ) : ViewModel() {
     val uiState: StateFlow<SettingsUiState> =
         observeBroadcastSettings()
@@ -35,7 +37,14 @@ class SettingsViewModel @Inject constructor(
 
     fun setShowLifeToPeople(enabled: Boolean) {
         viewModelScope.launch {
-            updateBroadcastSettings { it.copy(showLifeToPeople = enabled) }
+            val newSettings = uiState.value.settings.copy(showLifeToPeople = enabled)
+
+            updateBroadcastSettings { newSettings }
+
+            if (enabled)
+                broadcastController.enableBroadcasting(newSettings)
+            else
+                broadcastController.disableBroadcasting()
         }
     }
 }

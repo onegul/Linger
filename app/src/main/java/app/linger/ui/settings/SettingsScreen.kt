@@ -14,6 +14,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,15 +31,21 @@ fun SettingsScreen(
         add(Manifest.permission.ACCESS_FINE_LOCATION)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             add(Manifest.permission.BLUETOOTH_SCAN)
+            add(Manifest.permission.BLUETOOTH_CONNECT)
             add(Manifest.permission.BLUETOOTH_ADVERTISE)
         } else
             add(Manifest.permission.BLUETOOTH)
     }
 
+    var pendingEnabled by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { grantedMap ->
         val allGranted = permissions.all { grantedMap[it] == true }
+        if (allGranted)
+            viewModel.setShowLifeToPeople(pendingEnabled)
+        // If not granted, do nothing; Switch stays controlled by state from DataStore.
     }
 
     Column(
@@ -53,7 +62,17 @@ fun SettingsScreen(
             Text(text = "Show life to people")
             Switch(
                 checked = state.settings.showLifeToPeople,
-                onCheckedChange = { viewModel.setShowLifeToPeople(it) }
+                onCheckedChange = { enabled ->
+                    if (!enabled) {
+                        // Turning off doesn't require permissions.
+                        viewModel.setShowLifeToPeople(false)
+                        return@Switch
+                    }
+
+                    // Turning on requires permissions.
+                    pendingEnabled = true
+                    permissionLauncher.launch(permissions.toTypedArray())
+                }
             )
         }
 

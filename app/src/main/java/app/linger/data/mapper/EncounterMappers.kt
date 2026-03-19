@@ -43,7 +43,7 @@ fun EncounterDto.toEntity(): EncounterEntity =
         id = id,
         otherId = otherId,
         type = when (type.uppercase()) {
-            "VENEUE" -> EncounterType.VENUE
+            "VENUE" -> EncounterType.VENUE
             else -> EncounterType.USER
         },
         firstSeenAt = Instant.fromEpochMilliseconds(firstSeenAt),
