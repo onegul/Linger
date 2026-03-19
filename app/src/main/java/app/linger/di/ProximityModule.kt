@@ -2,6 +2,8 @@ package app.linger.di
 
 import android.content.Context
 import app.linger.proximity.BroadcastController
+import app.linger.proximity.PassThroughProximityIdResolver
+import app.linger.proximity.ProximityIdResolver
 import app.linger.proximity.ProximityScanner
 import app.linger.proximity.impl.BleBroadcastController
 import app.linger.proximity.impl.BleProximityScanner
@@ -24,6 +26,11 @@ object ProximityModule {
             stableUserId = "me",        // TODO: replace once auth exists
             rotationMinutes = 15
         )
+
+    @Provides
+    @Singleton
+    fun provideProximityIdResolver(): ProximityIdResolver =
+        PassThroughProximityIdResolver()
 
     @Provides
     @Singleton

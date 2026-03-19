@@ -8,6 +8,7 @@ import app.linger.domain.model.Encounter
 import app.linger.domain.model.EncounterType
 import app.linger.domain.model.Profile
 import app.linger.ml.ResonanceEngine
+import app.linger.proximity.ProximityIdResolver
 import app.linger.proximity.ProximityScanner
 import app.linger.proximity.model.ProximityTargetType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +20,7 @@ import kotlin.time.Instant
 
 class ScanNearbyUseCase @Inject constructor(
     private val proximityScanner: ProximityScanner,
+    private val proximityIdResolver: ProximityIdResolver,
     private val profileRepository: ProfileRepository,
     private val venueRepository: VenueRepository,
     private val resonanceEngine: ResonanceEngine,
@@ -35,14 +37,17 @@ class ScanNearbyUseCase @Inject constructor(
         return proximityScanner.proximityHits.transformLatest { hits ->
             // For now, we assume targetId is a stable peerId (no ephemeral mapping yet).
             val encounters = withContext(dispatchers.io) {
-                hits.map { hit ->
+                hits.mapNotNull { hit ->
+                    val resolvedId =
+                        proximityIdResolver.resolve(hit.targetId) ?: return@mapNotNull null
+
                     val type = when (hit.type) {
                         ProximityTargetType.USER -> EncounterType.USER
                         ProximityTargetType.VENUE -> EncounterType.VENUE
                     }
 
                     val resonance = if (type == EncounterType.USER) {
-                        val otherProfile: Profile? = profileRepository.getProfileOnce(hit.targetId)
+                        val otherProfile: Profile? = profileRepository.getProfileOnce(resolvedId)
                         otherProfile?.let { other ->
                             resonanceEngine.computeResonance(selfProfile, other)
                         }
@@ -50,8 +55,8 @@ class ScanNearbyUseCase @Inject constructor(
                         null
 
                     Encounter(
-                        id = buildEncounterId(hit.targetId, hit.firstSeenAt),
-                        otherId = hit.targetId,
+                        id = buildEncounterId(resolvedId, hit.firstSeenAt),
+                        otherId = resolvedId,
                         type = type,
                         firstSeenAt = hit.firstSeenAt,
                         lastSeenAt = hit.lastSeenAt,
