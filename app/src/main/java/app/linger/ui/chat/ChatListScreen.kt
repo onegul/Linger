@@ -48,7 +48,7 @@ fun ChatListScreen(
                 key = { it.id }
             ) { thread ->
                 ChatThreadRow(
-                    title = thread.peerId,
+                    title = if (thread.mode == ChatMode.REMOTE) "Remote Aura" else "Local Aura",
                     subtitle = thread.lastMessagePreview ?: "No messages yet",
                     mode = thread.mode,
                     onClick = { onOpenThread(thread.id) }

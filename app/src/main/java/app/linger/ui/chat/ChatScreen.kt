@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.linger.domain.model.ChatMode
+import app.linger.domain.model.MessageSender
 import app.linger.ui.theme.ConnectionBlue
 import app.linger.ui.theme.ConnectionGreen
 
@@ -81,8 +82,9 @@ fun ChatScreen(
                 items = state.messages,
                 key = { it.id }
             ) { msg ->
+                val prefix = if (msg.sender == MessageSender.SELF) "You" else "Friend"
                 Text(
-                    text = "${msg.sender}: ${msg.content}",
+                    text = "$prefix: ${msg.content}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 6.dp)
                 )

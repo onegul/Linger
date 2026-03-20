@@ -36,10 +36,11 @@ class ChatViewModel @Inject constructor(
     val uiState: StateFlow<ChatUiState> =
         combine(messagesFlow, threadsFlow) { messages, threads ->
             val thread = threads.firstOrNull { it.id == threadId }
+            val mode = thread?.mode ?: ChatMode.LOCAL
             ChatUiState(
                 threadId = threadId,
-                mode = thread?.mode ?: ChatMode.LOCAL,
-                title = thread?.peerId ?: "Chat",
+                mode = mode,
+                title = if (mode == ChatMode.REMOTE) "Remote Aura" else "Local Aura",
                 messages = messages,
                 sending = false
             )
@@ -49,7 +50,7 @@ class ChatViewModel @Inject constructor(
             initialValue = ChatUiState(
                 threadId = threadId,
                 mode = ChatMode.LOCAL,
-                title = "Chat",
+                title = "Local Aura",
                 messages = emptyList(),
                 sending = false
             )
