@@ -5,10 +5,12 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import app.linger.data.local.dao.ChatDao
 import app.linger.data.local.dao.EncounterDao
+import app.linger.data.local.dao.ProximityIdMappingDao
 import app.linger.data.local.dao.UserProfileDao
 import app.linger.data.local.entity.ChatMessageEntity
 import app.linger.data.local.entity.ChatThreadEntity
 import app.linger.data.local.entity.EncounterEntity
+import app.linger.data.local.entity.ProximityIdMappingEntity
 import app.linger.data.local.entity.UserProfileEntity
 
 @Database(
@@ -16,7 +18,8 @@ import app.linger.data.local.entity.UserProfileEntity
         UserProfileEntity::class,
         EncounterEntity::class,
         ChatThreadEntity::class,
-        ChatMessageEntity::class
+        ChatMessageEntity::class,
+        ProximityIdMappingEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -28,4 +31,6 @@ abstract class LingerDatabase : RoomDatabase() {
     abstract fun encounterDao(): EncounterDao
 
     abstract fun chatDao(): ChatDao
+
+    abstract fun proximityIdMappingDao(): ProximityIdMappingDao
 }

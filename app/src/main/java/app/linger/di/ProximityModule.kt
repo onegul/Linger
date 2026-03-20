@@ -1,10 +1,12 @@
 package app.linger.di
 
 import android.content.Context
+import app.linger.data.local.dao.ProximityIdMappingDao
+import app.linger.data.remote.api.ProfileApi
 import app.linger.proximity.BroadcastController
-import app.linger.proximity.PassThroughProximityIdResolver
 import app.linger.proximity.ProximityIdResolver
 import app.linger.proximity.ProximityScanner
+import app.linger.proximity.RemoteProximityIdResolver
 import app.linger.proximity.impl.BleBroadcastController
 import app.linger.proximity.impl.BleProximityScanner
 import app.linger.proximity.impl.EphemeralIdProvider
@@ -29,8 +31,11 @@ object ProximityModule {
 
     @Provides
     @Singleton
-    fun provideProximityIdResolver(): ProximityIdResolver =
-        PassThroughProximityIdResolver()
+    fun provideProximityIdResolver(
+        mappingDao: ProximityIdMappingDao,
+        profileApi: ProfileApi
+    ): ProximityIdResolver =
+        RemoteProximityIdResolver(mappingDao, profileApi)
 
     @Provides
     @Singleton

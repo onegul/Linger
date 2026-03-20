@@ -5,6 +5,7 @@ import androidx.room.Room
 import app.linger.data.local.LingerDatabase
 import app.linger.data.local.dao.ChatDao
 import app.linger.data.local.dao.EncounterDao
+import app.linger.data.local.dao.ProximityIdMappingDao
 import app.linger.data.local.dao.UserProfileDao
 import dagger.Module
 import dagger.Provides
@@ -29,4 +30,8 @@ object DatabaseModule {
 
     @Provides
     fun provideChatDao(db: LingerDatabase): ChatDao = db.chatDao()
+
+    @Provides
+    fun provideProximityIdMappingDao(db: LingerDatabase): ProximityIdMappingDao =
+        db.proximityIdMappingDao()
 }
