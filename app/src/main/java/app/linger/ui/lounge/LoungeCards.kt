@@ -13,20 +13,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.linger.domain.model.Encounter
 import app.linger.domain.model.EncounterType
 import app.linger.domain.model.ResonanceLevel
 
 @Composable
 fun LoungeRadarList(
-    items: List<Encounter>,
+    items: List<LoungeItem>,
     modifier: Modifier = Modifier,
     onGlance: (peerId: String) -> Unit
 ) {
     LazyColumn(modifier = modifier) {
         items(
             items = items,
-            key = { it.id }
+            key = { it.encounterId }
         ) { encounter ->
             LoungeCard(encounter, onGlance)
         }
@@ -35,11 +34,11 @@ fun LoungeRadarList(
 
 @Composable
 private fun LoungeCard(
-    encounter: Encounter,
+    item: LoungeItem,
     onGlance: (peerId: String) -> Unit
 ) {
-    val isResonant = encounter.resonance?.level == ResonanceLevel.HIGH
-    val isVenue = encounter.type == EncounterType.VENUE
+    val isResonant = item.resonanceLevel == ResonanceLevel.HIGH
+    val isVenue = item.type == EncounterType.VENUE
 
     val containerColor = when {
         isVenue -> MaterialTheme.colorScheme.error
@@ -64,34 +63,28 @@ private fun LoungeCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = when (encounter.type) {
-                    EncounterType.USER -> if (isResonant) "Resonant profile" else "Profile nearby"
-                    EncounterType.VENUE -> "Venue nearby"
-                },
+                text = item.essencePrimary,
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Text(
-                text = "id: ${encounter.otherId}",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 6.dp)
-            )
+            if (item.essenceSecondary.isNotBlank())
+                Text(
+                    text = item.essenceSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
 
-            Text(
-                text = "distance: ${encounter.approximateDistanceMeters?.let { "%.0f".format(it) } ?: "?"}m",
-                style = MaterialTheme.typography.bodySmall
-            )
+            item.distanceMeters?.let { d ->
+                Text(
+                    text = "≈ ${"%.0f".format(d)}m",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
 
-            val resonanceText =
-                encounter.resonance?.let { "${"%.2f".format(it.value)} (${it.level})" } ?: "-"
-            Text(
-                text = "resonance: $resonanceText",
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            if (encounter.type == EncounterType.USER) {
+            if (item.type == EncounterType.USER) {
                 Button(
-                    onClick = { onGlance(encounter.otherId) },
+                    onClick = { onGlance(item.peerId) },
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text("Glance")
